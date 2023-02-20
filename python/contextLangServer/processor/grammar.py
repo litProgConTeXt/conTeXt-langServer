@@ -1,5 +1,8 @@
 
+import copy
+import importlib.resources
 import json
+import pprint
 import yaml
 
 class Grammar :
@@ -35,5 +38,19 @@ class Grammar :
       #print(yaml.dump(grammarDict))
       self.loadFromDict(grammarDict)
 
-
+  def loadFromResourceDir(self, aGrammarPackage) :
+    syntaxDir = importlib.resources.files(aGrammarPackage)
+    for aSyntaxFile in syntaxDir.iterdir() :
+      if not aSyntaxFile.name.endswith('tmLanguage.json') : continue
+      with importlib.resources.as_file(aSyntaxFile) as syntaxFile :
+        syntaxStr = syntaxFile.read_text()
+        syntaxDict = json.loads(syntaxStr)
+        self.loadFromDict(syntaxDict)
  
+  def saveToFile(self, aGrammarPath) :
+    with open(aGrammarPath, 'w') as grammarFile :
+      grammarDict = copy.deepcopy(self.patterns)
+      grammarStr = json.dumps(grammarDict, indent=2) 
+      grammarFile.write(grammarStr)
+      grammarFile.write("\n")
+  
