@@ -3,7 +3,7 @@
 import asyncio
 import json
 
-from experiments.simpleJsonRpc import AsyncJsonRpc
+from contextLangServer.langserver.simpleJsonRpc import AsyncJsonRpc
 
 crlf = "\r\n"
 inputArray = []

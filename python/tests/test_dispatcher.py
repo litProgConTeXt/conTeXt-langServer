@@ -7,6 +7,7 @@ import yaml
 from contextLangServer.langserver.dispatcher import Dispatcher
 from utils import MockJsonRpc
 
+@Dispatcher.lsRequest('simpleStrParam', packed=False, kwargsDict={ 'test' : 'this is a test'})
 async def simpleStrParam(disp, ctx, aMessage, **kwargs) :
   print("-----------------------------------------")
   print('simpleStrParam')
@@ -19,6 +20,20 @@ async def simpleStrParam(disp, ctx, aMessage, **kwargs) :
     'dispType' : type(disp)
   })
 
+@Dispatcher.lsRequest('simplePackedStrParam', kwargsDict={ 'test' : 'this is a test'})
+async def simplePackedStrParam(disp, ctx, params, kwargs) :
+  print("-----------------------------------------")
+  print('simplePackedStrParam')
+  print(params[0])
+  print("-----------------------------------------")
+  ctx.append({
+    'method'   : 'simplePackedStrParam',
+    'msg'      : params[0],
+    'kwargs'   : kwargs,
+    'dispType' : type(disp)
+  })
+
+@Dispatcher.lsRequest('simpleListParam', packed=False)
 async def simpleListParam(disp, ctx, msg1, msg2, **kwargs) :
   print("-----------------------------------------")
   print('simpleListParam')
@@ -33,6 +48,22 @@ async def simpleListParam(disp, ctx, msg1, msg2, **kwargs) :
     'dispType' : type(disp)
   })
 
+@Dispatcher.lsRequest('simplePackedListParam')
+async def simplePackedListParam(disp, ctx, params, kwargs) :
+  print("-----------------------------------------")
+  print('simplePackedListParam')
+  print(params[0])
+  print(params[1])
+  print("-----------------------------------------")
+  ctx.append({
+    'method'   : 'simplePackedListParam',
+    'msg1'     : params[0],
+    'msg2'     : params[1],
+    'kwargs'   : kwargs,
+    'dispType' : type(disp)
+  })
+
+@Dispatcher.lsRequest('simpleDictParam', packed=False)
 async def simpleDictParam(disp, ctx, msg1="msg1", msg2="msg2", **kwargs) :
   print("-----------------------------------------")
   print('simpleDictParam')
@@ -47,44 +78,67 @@ async def simpleDictParam(disp, ctx, msg1="msg1", msg2="msg2", **kwargs) :
     'dispType' : type(disp)
   })
 
+@Dispatcher.lsRequest('simplePackedDictParam')
+async def simpleDictParam(disp, ctx, params, kwargs) :
+  print("-----------------------------------------")
+  print('simpleDictParam')
+  print(kwargs['msg1'])
+  print(kwargs['msg2'])
+  print("-----------------------------------------")
+  ctx.append({
+    'method'   : 'simplePackedDictParam',
+    'msg1'     : kwargs['msg1'],
+    'msg2'     : kwargs['msg2'],
+    'kwargs'   : kwargs,
+    'dispType' : type(disp)
+  })
+
+@Dispatcher.lsRequest('simpleRaiseExcep')
 async def simpleRaiseExcep(disp, ctx, *params, **kwargs) :
   raise Exception("simple exception raised")
 
+@Dispatcher.lsRequest('simpleBrokenDef')
 async def simpleBrokenDef() :
   pass
 
+@Dispatcher.lsRequest('simpleNotAsync')
 def simpleNotAsync(disp, ctx, *params, **kwargs) :
   pass
 
+@Dispatcher.lsRequest('simpleStop')
 async def simpleStop(disp, ctx, *params, **kwargs) :
   disp.stopDispatching()
 
 def test_listMethods() :
   disp = Dispatcher(None)
-  disp.addMethod('simpleStrParam', simpleStrParam)
-  disp.addMethod('simpleListParam', simpleListParam)
-  disp.addMethod('simpleDictParam', simpleDictParam)
-  disp.addMethod('simpleRaiseExcep', simpleRaiseExcep)
-  disp.addMethod('simpleBrokenDef', simpleBrokenDef)
-  disp.addMethod('simpleNotAsync', simpleNotAsync)
-  disp.addMethod('simpleStop', simpleStop)
   methods = disp.listMethods()
   assert isinstance(methods, list)
-  assert len(methods) == 7
+
+  # now that we are testing ls?_* we will have more methods
+  #assert len(methods) == 10 
+  
   assert 'simpleStrParam' in methods
+  assert not Dispatcher.methods['simpleStrParam']['packed'] 
+  assert Dispatcher.methods['simpleStrParam']['kwargs']['test'] == "this is a test"
+  assert 'simplePackedStrParam' in methods
+  assert Dispatcher.methods['simplePackedStrParam']['packed']
+  assert Dispatcher.methods['simplePackedStrParam']['kwargs']['test'] == "this is a test"
   assert 'simpleListParam' in methods
+  assert 'simplePackedListParam' in methods
   assert 'simpleDictParam' in methods
+  assert 'simplePackedDictParam' in methods
   assert 'simpleRaiseExcep' in methods
   assert 'simpleBrokenDef' in methods
   assert 'simpleNotAsync' in methods
   assert 'simpleStop' in methods
+  #print(yaml.dump(Dispatcher.methods))
+  #assert False
 
 @pytest.mark.asyncio
 async def test_dispatch_strParam() :
   mockJsonRpc = MockJsonRpc(debugIO=sys.stdout)
   resultsCtx = []
   disp = Dispatcher(mockJsonRpc, resultsCtx)
-  disp.addMethod('simpleStrParam', simpleStrParam)
 
   dispatcherTask = asyncio.create_task(disp.dispatchOnce())
 
@@ -100,11 +154,29 @@ async def test_dispatch_strParam() :
   #assert False
 
 @pytest.mark.asyncio
+async def test_dispatch_packedStrParam() :
+  mockJsonRpc = MockJsonRpc(debugIO=sys.stdout)
+  resultsCtx = []
+  disp = Dispatcher(mockJsonRpc, resultsCtx)
+
+  dispatcherTask = asyncio.create_task(disp.dispatchOnce())
+
+  theMessage = 'this is a simple message'
+  await mockJsonRpc.putNextMsg('simplePackedStrParam', theMessage)
+
+  await dispatcherTask
+  assert len(resultsCtx) == 1
+  assert 'msg' in resultsCtx[0]
+  assert resultsCtx[0]['msg'] == theMessage
+  #print(yaml.dump(resultsCtx))
+  #await mockJsonRpc.printMsgs()
+  #assert False
+
+@pytest.mark.asyncio
 async def test_dispatch_listParam() :
   mockJsonRpc = MockJsonRpc(debugIO=sys.stdout)
   resultsCtx = []
   disp = Dispatcher(mockJsonRpc, resultsCtx)
-  disp.addMethod('simpleListParam', simpleListParam)
 
   dispatcherTask = asyncio.create_task(disp.dispatchOnce())
 
@@ -123,11 +195,32 @@ async def test_dispatch_listParam() :
   #assert False
 
 @pytest.mark.asyncio
+async def test_dispatch_packedListParam() :
+  mockJsonRpc = MockJsonRpc(debugIO=sys.stdout)
+  resultsCtx = []
+  disp = Dispatcher(mockJsonRpc, resultsCtx)
+
+  dispatcherTask = asyncio.create_task(disp.dispatchOnce())
+
+  theMsg1 = 'this is the first message'
+  theMsg2 = 'this is the second message'
+  await mockJsonRpc.putNextMsg('simplePackedListParam', [ theMsg1, theMsg2 ], anId=1)
+
+  await dispatcherTask
+  assert len(resultsCtx) == 1
+  assert 'msg1' in resultsCtx[0]
+  assert resultsCtx[0]['msg1'] == theMsg1
+  assert 'msg2' in resultsCtx[0]
+  assert resultsCtx[0]['msg2'] == theMsg2
+  #print(yaml.dump(resultsCtx))
+  #await mockJsonRpc.printMsgs()
+  #assert False
+
+@pytest.mark.asyncio
 async def test_dispatch_dictParam() :
   mockJsonRpc = MockJsonRpc(debugIO=sys.stdout)
   resultsCtx = []
   disp = Dispatcher(mockJsonRpc, resultsCtx)
-  disp.addMethod('simpleDictParam', simpleDictParam)
 
   dispatcherTask = asyncio.create_task(disp.dispatchOnce())
 
@@ -149,11 +242,35 @@ async def test_dispatch_dictParam() :
   #assert False
 
 @pytest.mark.asyncio
+async def test_dispatch_packedDictParam() :
+  mockJsonRpc = MockJsonRpc(debugIO=sys.stdout)
+  resultsCtx = []
+  disp = Dispatcher(mockJsonRpc, resultsCtx)
+
+  dispatcherTask = asyncio.create_task(disp.dispatchOnce())
+
+  theMsg1 = 'this is the first message'
+  theMsg2 = 'this is the second message'
+  await mockJsonRpc.putNextMsg('simplePackedDictParam', {
+    'msg1' : theMsg1,
+    'msg2' : theMsg2
+  })
+
+  await dispatcherTask
+  assert len(resultsCtx) == 1
+  assert 'msg1' in resultsCtx[0]
+  assert resultsCtx[0]['msg1'] == theMsg1
+  assert 'msg2' in resultsCtx[0]
+  assert resultsCtx[0]['msg2'] == theMsg2
+  #print(yaml.dump(resultsCtx))
+  #await mockJsonRpc.printMsgs()
+  #assert False
+
+@pytest.mark.asyncio
 async def test_dispatch_raiseException() :
   mockJsonRpc = MockJsonRpc(debugIO=sys.stdout)
   resultsCtx = []
   disp = Dispatcher(mockJsonRpc, resultsCtx)
-  disp.addMethod('simpleRaiseExcep', simpleRaiseExcep)
 
   dispatcherTask = asyncio.create_task(disp.dispatchOnce())
 
@@ -180,7 +297,6 @@ async def test_dispatch_brokenDef() :
   mockJsonRpc = MockJsonRpc(debugIO=sys.stdout)
   resultsCtx = []
   disp = Dispatcher(mockJsonRpc, resultsCtx)
-  disp.addMethod('simpleBrokenDef', simpleBrokenDef)
 
   dispatcherTask = asyncio.create_task(disp.dispatchOnce())
 
@@ -207,7 +323,6 @@ async def test_dispatch_notAsync() :
   mockJsonRpc = MockJsonRpc(debugIO=sys.stdout)
   resultsCtx = []
   disp = Dispatcher(mockJsonRpc, resultsCtx)
-  disp.addMethod('simpleNotAsync', simpleNotAsync)
 
   dispatcherTask = asyncio.create_task(disp.dispatchOnce())
 
@@ -234,13 +349,6 @@ async def test_dispatch_run() :
   mockJsonRpc = MockJsonRpc(debugIO=sys.stdout)
   resultsCtx = []
   disp = Dispatcher(mockJsonRpc, resultsCtx, debugIO=sys.stdout)
-  disp.addMethod('simpleStrParam', simpleStrParam)
-  disp.addMethod('simpleListParam', simpleListParam)
-  disp.addMethod('simpleDictParam', simpleDictParam)
-  disp.addMethod('simpleRaiseExcep', simpleRaiseExcep)
-  disp.addMethod('simpleBrokenDef', simpleBrokenDef)
-  disp.addMethod('simpleNotAsync', simpleNotAsync)
-  disp.addMethod('simpleStop', simpleStop)
 
   dispatcherTask = asyncio.create_task(disp.run())
 

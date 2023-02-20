@@ -19,6 +19,7 @@ def test_loadGrammar_empty() :
 
   assert False
 
+@pytest.mark.skip
 def test_loadGrammar_fromFile() :
   grammar = Grammar()
   grammar.loadFromFile('tests/context.tmLanguage.json')

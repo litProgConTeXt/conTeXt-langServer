@@ -1,30 +1,40 @@
 
 import asyncio
 import copy
+import functools
 import yaml
 
 class Dispatcher :
+  # Class variables and definitions
+
+  methods = {} # Class variable
+
+  def lsRequest(route, packed=True, kwargsDict={}) :
+    def decorator_routeMethod(asyncMethodFunc) :
+      Dispatcher.methods[route] = {
+        'route'  : route,
+        'method' : asyncMethodFunc,
+        'packed' : packed,
+        'kwargs' : copy.deepcopy(kwargsDict)
+      }
+      return asyncMethodFunc
+    return decorator_routeMethod
+
+  lsNotification = lsRequest  # alias
+
+  # Instance varaibles and definitions
+
   def __init__(self, jsonRpc, ctx=None, debugIO=None) :
     self.jsonRpc = jsonRpc
     self.context = ctx
     self.debugIO = debugIO
     self.continueDispatching = True
-    self.methods = {}
 
   def getContext(self) :
     return self.context
 
   def stopDispatching(self) :
     self.continueDispatching = False
-
-  def addMethod(self, route, asyncMethodFunc, kwargsDict = {}) :
-    if not isinstance(kwargsDict, dict) :
-      kwargsDict = { 'kwargs' : kwargsDict }
-    self.methods[route] = {
-      'route'  : route,
-      'method' : asyncMethodFunc,
-      'kwargs' : copy.deepcopy(kwargsDict)
-    }
 
   def listMethods(self) :
     return list(self.methods.keys())
@@ -66,7 +76,10 @@ class Dispatcher :
         self.debugIO.write(yaml.dump(kwargs))
         self.debugIO.flush()
     try :
-      theResult = await aMethodFunc(self, self.context, *someParams, **kwargs)
+      if aMethodConfig['packed'] :
+        theResult = await aMethodFunc(self, self.context, someParams, kwargs)
+      else :
+        theResult = await aMethodFunc(self, self.context, *someParams, **kwargs)
       if theResult :
         await self.jsonRpc.sendResult(theResult, anId)
     except Exception as err :
