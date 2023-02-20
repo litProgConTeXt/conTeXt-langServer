@@ -10,7 +10,7 @@ from contextLangServer.langserver.dispatcher import Dispatcher
 #############################################################################
 # Go to Definition
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_definition
-@Dispatcher.lsRequest('textDocument/definition') :
+@Dispatcher.lsRequest('textDocument/definition')
 async def textDocument_definition(disp, ctx, params, kwargs) :
   pass
 
@@ -20,7 +20,9 @@ async def textDocument_definition(disp, ctx, params, kwargs) :
 #############################################################################
 # Find References
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_references
-# textDocument/references
+@Dispatcher.lsRequest('textDocument/references')
+async def textDocument_references(disp, ctx, params, kwargs) :
+  pass
 
 # Prepare Call Hierarchy
 # Call Hierarchy Incoming Calls
@@ -35,7 +37,9 @@ async def textDocument_definition(disp, ctx, params, kwargs) :
 #############################################################################
 # Hover
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_hover
-# textDocument/hover
+@Dispatcher.lsRequest('textDocument/hover')
+async def textDocument_hover(disp, ctx, params, kwargs) :
+  pass
 
 # Code Lens
 # Code Lens Refresh
@@ -45,7 +49,9 @@ async def textDocument_definition(disp, ctx, params, kwargs) :
 #############################################################################
 # Document Symbols
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_documentSymbol
-# textDocument/documentSymbol
+@Dispatcher.lsRequest('textDocument/documentSymbol')
+async def textDocument_documentSymbol(disp, ctx, params, kwargs) :
+  pass
 
 # Semantic Tokens
 # Inline Value
@@ -58,7 +64,9 @@ async def textDocument_definition(disp, ctx, params, kwargs) :
 #############################################################################
 # Completion Proposals
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_completion
-# textDocument/completion
+@Dispatcher.lsRequest('textDocument/completion')
+async def textDocument_completion(disp, ctx, params, kwargs) :
+  pass
 
 # Completion Item Resolve
 # Publish Diagnostics
@@ -67,7 +75,9 @@ async def textDocument_definition(disp, ctx, params, kwargs) :
 #############################################################################
 # Signature Help
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_signatureHelp
-# textDocument/signatureHelp
+@Dispatcher.lsRequest('textDocument/signatureHelp')
+async def textDocument_signatureHelp(disp, ctx, params, kwargs) :
+  pass
 
 # Code Action
 # Code Action Resolve

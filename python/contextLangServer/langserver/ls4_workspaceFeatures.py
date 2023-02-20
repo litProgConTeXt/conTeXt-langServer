@@ -7,7 +7,7 @@ from contextLangServer.langserver.dispatcher import Dispatcher
 #############################################################################
 #    Workspace Symbols
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_symbol
-@Dispatcher.lsRequest('workspace/symbol)
+@Dispatcher.lsRequest('workspace/symbol')
 async def workspace_symbol(disp, ctx, params, kwargs) :
   pass
 
