@@ -1,0 +1,2 @@
+# ConTeXt Language Server
+
