@@ -2,54 +2,67 @@
 import copy
 import importlib.resources
 import json
-import pprint
+#import pprint
 import yaml
 
 class Grammar :
-  def __init__(self) :
-    self.patterns = {}
-    self.scopes2patterns = {}
-    self.scopeName = None
 
-  def loadFromDict(self, aGrammarDict) :
-    patterns = {}
-    scopes2patterns = {}
-    scopeName = 'source.unknown'
-    if 'scopeName' in aGrammarDict :
-      scopeName = aGrammarDict['scopeName']
+  # Class variables and definitions
+
+  repository = {}
+  scopes2patterns = {}
+
+  def addPatternsToRepository(aName, aScope, patterns) :
+    if aName in Grammar.repository :
+      print("WARNING: Duplicate pattern name {aPatternName} in repository.")
+      print("  last pattern wins! (This may not be what you want)")
+      print("")
+    Grammar.repository[aName] = patterns
+    if aScope :
+      Grammar.scopes2patterns[aScope] = aName
+
+  def loadFromDict(aGrammarDict) :
     if 'repository' in aGrammarDict :
       for aPatternName, aPattern in aGrammarDict['repository'].items() :
-        patterns[aPatternName] = aPattern
-        if 'name' in aPattern :
-          scopes2patterns[aPattern['name']] = aPatternName
-    patterns[scopeName] = {}
+        aPatternScope = None
+        if 'name' in aPattern: aPatterScope = aPattern['name']
+        Grammar.addPatternsToRepository(aPatternName, aPatternScope, aPattern)
+    scopeName = None
+    if 'scopeName' in aGrammarDict :
+      scopeName = aGrammarDict['scopeName']
     if 'patterns' in aGrammarDict :
-      patterns[scopeName] = aGrammarDict['patterns']
-    scopes2patterns[scopeName] = scopeName
+      if not scopeName :
+        print("WARNING: loading a grammer with no scope! ")
+        print("  this means that this grammar can not be directly used!")
+        print("")
+      Grammar.addPatternsToRepository(
+        scopeName, scopeName, aGrammarDict['patterns']
+      )
 
-    self.patterns = patterns
-    self.scopes2patterns = scopes2patterns
-    self.scopeName = scopeName
-
-  def loadFromFile(self, aGrammarPath) :
+  def loadFromFile(aGrammarPath) :
     with open(aGrammarPath) as grammarFile :
       grammarDict = json.loads(grammarFile.read())
-      #print("----grammar-dict-----------------------------")
-      #print(yaml.dump(grammarDict))
-      self.loadFromDict(grammarDict)
+      Grammar.loadFromDict(grammarDict)
 
-  def loadFromResourceDir(self, aGrammarPackage) :
+  def loadFromResourceDir(aGrammarPackage) :
     syntaxDir = importlib.resources.files(aGrammarPackage)
     for aSyntaxFile in syntaxDir.iterdir() :
       if not aSyntaxFile.name.endswith('tmLanguage.json') : continue
       with importlib.resources.as_file(aSyntaxFile) as syntaxFile :
         syntaxStr = syntaxFile.read_text()
         syntaxDict = json.loads(syntaxStr)
-        self.loadFromDict(syntaxDict)
+        Grammar.loadFromDict(syntaxDict)
  
-  def saveToFile(self, aGrammarPath) :
+  def pruneRepository() :
+    pass
+
+  def checkRepository() :
+    pass
+
+  def saveToFile(aGrammarPath) :
+    raise Exception("FIX ME")
     with open(aGrammarPath, 'w') as grammarFile :
-      grammarDict = copy.deepcopy(self.patterns)
+      grammarDict = copy.deepcopy(Grammar.repository)
       grammarStr = json.dumps(grammarDict, indent=2) 
       grammarFile.write(grammarStr)
       grammarFile.write("\n")

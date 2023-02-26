@@ -28,6 +28,9 @@ class ScopeActions :
       return func
     return decorator_scopeMethod
 
+  async def run(scopeStr) :
+    scopeParts = scopeStr.split('.')
+
   def pattern(scopeStr, aPattern) :
     scopeParts = scopeStr.split('.')
     print(yaml.dump(scopeParts))
@@ -53,5 +56,3 @@ class ScopeActions :
   def getContext(self) :
     return self.context
 
-  async def run(scopeStr) :
-    scopeParts = scopeStr.split('.')
