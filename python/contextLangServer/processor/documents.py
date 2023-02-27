@@ -1,5 +1,5 @@
 
-
+import re
 import yaml
 
 class DocumentCache :
@@ -43,6 +43,50 @@ class DocumentCache :
 
 class DocumentIter :
 
+  def __init__(self, aDoc, startLine=None, endLine=None) :
+    if startLine == None : startLine = 0
+    if endLine   == None : endLine   = len(aDoc.docLines)
+
+    self.theDoc    = aDoc
+    self.docLines  = aDoc.docLines
+    self.startLine = startLine
+    self.endLine   = endLine
+    self.index     = startLine
+
+  def __iter__(self) :
+    self.index   = self.startLine
+    return self
+
+  def __next__(self) :
+
+    if self.endLine <= self.index :
+      raise StopIteration
+    curLine = self.docLines[self.index]
+    self.index += 1
+    return curLine
+
+class ScopedDocument :
+  def __init__(self, aDoc, aScope, startLine=None, endLine=None) :
+    if startLine == None : startLine = 0
+    if endLine   == None : endLine   = len(aDoc.docLines)
+    if startLine < 0 : startLine = 0
+    if len(aDoc.docLines) < endLine : endLine = len(aDoc.docLines)
+    self.scope  = aScope
+    self.theDoc = aDoc
+    self.startLine = startLine
+    self.endLine   = endLine
+
+  def getDocIter(self, startLine=None, endLine=None) :
+    if startLine == None : startLine = self.startLine
+    if endLine   == None : endLine   = self.endLine
+    if startLine < self.startLine : startLine = self.startLine
+    if self.endLine < endLine     : endLine   = self.endLine
+    return self.theDoc.getDocIter(startLine=startLine, endLine=endLine)
+
+  def parse(self) :
+    pass
+
+class Document :
   # Class variables and definitions
 
   def removeComment(aLine) :
@@ -57,33 +101,6 @@ class DocumentIter :
 
   # Instance variables and definitions
 
-  def __init__(self, aDoc) :
-    self.theDoc = aDoc
-    self.curLine = None
-
-  def __lineIter__(self) :
-    for aLine in self.docLines :
-      aLine = aLine.strip()
-      yield aLine
-    yield None
-
-  def nextLine(self) :
-    return(self.__lineIter__, None)
-
-  def __probeIter__(self) :
-    curLine = self.nextLine()
-    while curLine is not None :
-      curLine = Document.removeComment(curLine)
-      curProbes = Document.macroRE.findall(curLine)
-      for aProbe in curProbes :
-        yield aProbe
-      self.nextLine()
-    yield None
-
-  def nextProbe(self) :
-    return next(self.__probeIter__, None)
-
-class Document :
   def __init__(self) :
     self.filePath = None
     self.docName  = None
@@ -101,5 +118,8 @@ class Document :
   def update(self, startLine, endLine, updateStr) :
     pass
 
-  def getDocIter(self) :
-    return DocumentIter(self)
+  def getDocIter(self, startLine=None, endLine=None) :
+    return DocumentIter(self, startLine=startLine, endLine=endLine)
+
+  def getScopedDoc(self, aScope, startLine=None, endLine=None) :
+    return ScopedDocument(self, aScope, startLine=startLine, endLine=endLine)

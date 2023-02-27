@@ -2,9 +2,12 @@
 import pytest
 import yaml
 
-from contextLangServer.processor.documents import Document, DocumentIter, DocumentCache
+from contextLangServer.processor.documents import (
+  Document, DocumentIter, DocumentCache
+)
 
-#@pytest.mark.skip
+# The test.tex document has 8 lines
+
 def test_loadDocument() :
   docPath = 'tests/docs/test.tex'
   if not DocumentCache.hasDocument(docPath) :
@@ -26,19 +29,19 @@ def test_loadDocument() :
 
 def test_removeComment() :
   aStr = "this is a test"
-  result = DocumentIter.removeComment(aStr)
+  result = Document.removeComment(aStr)
   assert result == aStr
   aStr = "This is a test with % a comment"
-  result = DocumentIter.removeComment(aStr)
+  result = Document.removeComment(aStr)
   assert result == 'This is a test with '
   aStr = "This is a test with \\% no comment"
-  result = DocumentIter.removeComment(aStr)
+  result = Document.removeComment(aStr)
   assert result == aStr
   aStr = "This is a test with \\% no comment % and a comment"
-  result = DocumentIter.removeComment(aStr)
+  result = Document.removeComment(aStr)
   assert result == 'This is a test with \\% no comment '
   aStr = "This is another test with % a comment \\% and no comment"
-  result = DocumentIter.removeComment(aStr)
+  result = Document.removeComment(aStr)
   assert result == 'This is another test with '
 
 def test_docIter() :
@@ -49,10 +52,51 @@ def test_docIter() :
   print("------------------------------------------------------------------")
   print(yaml.dump(theDoc))
   print("------------------------------------------------------------------")
+  print(len(theDoc.docLines))
+  print("------------------------------------------------------------------")
   iterA = theDoc.getDocIter()
   lines = theDoc.docLines
   curIndex = 0
-  for aLine in iterA.nextLine() :
+  for aLine in iterA :
     assert aLine == lines[curIndex]
     curIndex += 1
-  assert False
+  assert curIndex == len(lines)
+  startLine = 2
+  endLine   = len(lines) - 2
+  iterB = theDoc.getDocIter(startLine=startLine, endLine=endLine)
+  curIndex = startLine
+  for aLine in iterB :
+    assert aLine == lines[curIndex]
+    curIndex += 1
+  assert curIndex == endLine
+  #assert False
+
+def test_subDoc() :
+  docPath = 'tests/docs/test.tex'
+  if not DocumentCache.hasDocument(docPath) :
+    DocumentCache.loadFromFile(docPath)
+  theDoc = DocumentCache.getDocument(docPath)
+  lines = theDoc.docLines
+  startLine = 2
+  endLine   = len(lines) - 2
+  subDoc = theDoc.getScopedDoc(
+    'source.lpic', startLine=startLine, endLine=endLine
+  )
+  assert subDoc.scope     == 'source.lpic'
+  assert subDoc.startLine == startLine
+  assert subDoc.endLine   == endLine
+  iterA = subDoc.getDocIter()
+  curIndex = startLine
+  for aLine in iterA :
+    assert aLine == lines[curIndex]
+    curIndex += 1
+  assert curIndex == endLine
+  startLine += 1
+  endLine   -= 1
+  iterB = subDoc.getDocIter(startLine=startLine, endLine=endLine)
+  curIndex = startLine
+  for aLine in iterB :
+    assert aLine == lines[curIndex]
+    curIndex += 1
+  assert curIndex == endLine
+  #assert False
