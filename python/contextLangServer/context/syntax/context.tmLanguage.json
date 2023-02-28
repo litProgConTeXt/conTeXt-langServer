@@ -56,7 +56,7 @@
         }
       ]
     },
-    "context-commnd" : {
+    "context-command" : {
       "captures": {
 
         "1": {

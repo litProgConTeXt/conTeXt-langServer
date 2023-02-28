@@ -128,3 +128,20 @@ def test_pruneRepository() :
 
 
   #assert False
+
+def test_removePatternsWithNoActions() :
+  if 'source.lpic' not in Grammar.scopes2patterns :
+    Grammar.loadFromFile('tests/context.tmLanguage.json')
+  oldKeys = list(Grammar.repository.keys())
+  deletedKeys = Grammar.removePatternsWithNoActions('source.lpic')
+  print("--old keys-------------------------------------------------------")
+  print(yaml.dump(oldKeys))
+  print("--deleted keys---------------------------------------------------")
+  print(yaml.dump(deletedKeys))
+  print("--repository-----------------------------------------------------")
+  print(yaml.dump(Grammar.repository))
+  print("-----------------------------------------------------------------")
+
+  assert deletedKeys == oldKeys
+
+  assert False

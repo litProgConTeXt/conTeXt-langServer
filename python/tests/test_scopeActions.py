@@ -42,4 +42,9 @@ def test_simpleStrParam() :
   #print(type(simpleStrParam))
   assert isinstance(action['method'], type(simpleStrParam))
   assert action['method'] == simpleStrParam
+  assert ScopeActions.hasAction('simple.Str.Param')
+  assert ScopeActions.hasAction('simple.Str')
+  assert ScopeActions.hasAction('simple')
+  assert not ScopeActions.hasAction('does.not.exist')
   #assert False
+

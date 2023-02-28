@@ -28,6 +28,16 @@ class ScopeActions :
       return func
     return decorator_scopeMethod
 
+  def hasAction(scopeStr) :
+    scopeParts = scopeStr.split('.')
+    curScope = ScopeActions.actions
+    for aPart in scopeParts :
+      if aPart in curScope :
+        curScope = curScope[aPart]
+      else :
+        return False
+    return True
+
   async def run(scopeStr) :
     scopeParts = scopeStr.split('.')
 
@@ -46,6 +56,18 @@ class ScopeActions :
     }
     print(yaml.dump(ScopeActions.actions))
 
+  def loadActionsFromDir(aDir) :
+    #Load/import all scope actions found in the aDir directory.
+
+    if aDir.startswith('~') :
+      aDir = os.path.expanduser(aDir)
+    aPkgPath = os.path.basename(aDir)
+    aSysPath = os.path.dirname(aDir)
+    if aSysPath not in sys.path :
+      sys.path.insert(0, aSysPath)
+
+    for (_, module_name, _) in pkgutil.iter_modules([aDir]) :
+      theModule = importlib.import_module(aPkgPath+'.'+module_name)
 
   # Instance varaibles and definitions
 

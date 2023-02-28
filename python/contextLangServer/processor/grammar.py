@@ -5,6 +5,8 @@ import json
 #import pprint
 import yaml
 
+from contextLangServer.processor.scopeActions import ScopeActions
+
 # see:
 #  https://code.visualstudio.com/api/language-extensions/syntax-highlight-guide
 #  https://macromates.com/manual/en/language_grammars
@@ -93,6 +95,56 @@ class Grammar :
             patRefs[aPatRef] = True
     return list(patRefs.keys())
   
+  def removePatternsWithNoActions(baseScope) :
+
+    def foundPatternsWithActions(aDict) :
+      if not isinstance(aDict, dict) : return False
+      for aKey, aValue in aDict.items() :
+        if aKey == 'name' :
+          aValue = aValue.lstrip('#')
+          if ScopeActions.hasAction(aValue) : 
+            print(f"found action for {aValue}")
+            return True
+        if foundPatternsWithActions(aValue) : return True
+      return False
+
+    patternsWithActions = {}
+
+    def removePatternsWithoutActions(aDict) :
+      if not isinstance(aDict, dict) : return False
+      numPatterns = 0
+      hasAction   = False
+      for aKey, aValue in aDict.items() :
+        if aKey == 'patterns' :
+          indices2delete = []
+          for anIndex, aPat in enumerate(aValue) :
+            if removePatternsWithoutActions(aPat) : indices2delete.append(anIndex)
+          indices2delete.reverse()
+          for anIndex in indices2delete :
+            del aValue[anIndex]
+          numPatterns = len(aValue)
+        if aKey == 'name' :
+          aValue = aValue.lstrip('#')
+          if aValue in patternsWithActions and patternsWithActions[aValue] :
+            hasAction = True
+      if numPatterns < 1 :
+        if 'patterns' in aDict : del aDict['patterns']
+        return not hasAction
+      return True
+
+    repo    = Grammar.repository
+
+    for aName, aPattern in repo.items() :
+      patternsWithActions[aName] = foundPatternsWithActions(aPattern)
+
+    names2delete = []
+    for aName, aPattern in repo.items() :
+      if removePatternsWithoutActions(aPattern) : names2delete.append(aName)
+    
+    for aName in names2delete :
+      del repo[aName]
+    return names2delete
+      
   def pruneRepository(aScope) :
     patRefs     = Grammar.collectPatternReferences(aScope)
     repo        = Grammar.repository
