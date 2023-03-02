@@ -1,5 +1,9 @@
 
 import copy
+import importlib
+import os
+import pkgutil
+import sys
 import yaml
 
 class ScopeActions :
@@ -11,10 +15,10 @@ class ScopeActions :
   def method(scopeStr, packed=True, kwargsDict={}) :
     def decorator_scopeMethod(func) :
       scopeParts = scopeStr.split('.')
-      print(yaml.dump(scopeParts))
+      #print(yaml.dump(scopeParts))
       curScope = ScopeActions.actions
       for aScopePart in scopeParts :
-        print(aScopePart)
+        #print(aScopePart)
         if aScopePart not in curScope :
           curScope[aScopePart] = {}
         curScope = curScope[aScopePart]
@@ -24,7 +28,7 @@ class ScopeActions :
         'packed' : packed,
         'kwargs' : copy.deepcopy(kwargsDict)
       }
-      print(yaml.dump(ScopeActions.actions))
+      #print(yaml.dump(ScopeActions.actions))
       return func
     return decorator_scopeMethod
 
@@ -38,15 +42,25 @@ class ScopeActions :
         return False
     return True
 
+  def getAction(scopeStr) :
+    scopeParts = scopeStr.split('.')
+    curScope = ScopeActions.actions
+    for aPart in scopeParts :
+      if aPart in curScope :
+        curScope = curScope[aPart]
+      else :
+        return {}
+    return curScope
+
   async def run(scopeStr) :
     scopeParts = scopeStr.split('.')
 
   def pattern(scopeStr, aPattern) :
     scopeParts = scopeStr.split('.')
-    print(yaml.dump(scopeParts))
+    #print(yaml.dump(scopeParts))
     curScope = ScopeActions.actions
     for aScopePart in scopeParts :
-      print(aScopePart)
+      #print(aScopePart)
       if aScopePart not in curScope :
         curScope[aScopePart] = {}
       curScope = curScope[aScopePart]
@@ -54,7 +68,7 @@ class ScopeActions :
       'scope'   : scopeStr,
       'pattern' : aPattern,
     }
-    print(yaml.dump(ScopeActions.actions))
+    #print(yaml.dump(ScopeActions.actions))
 
   def loadActionsFromDir(aDir) :
     #Load/import all scope actions found in the aDir directory.

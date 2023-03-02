@@ -95,55 +95,107 @@ class Grammar :
             patRefs[aPatRef] = True
     return list(patRefs.keys())
   
-  def removePatternsWithNoActions(baseScope) :
+  def collectScopePaths(withAction=False) :
+    # base case
+    aStruct = Grammar.repository
+    spDict = {}
+    spKeys = []
+    changed = True
+    while changed :
+      changed = Grammar._collectScopePaths(
+        aStruct, spDict, spKeys, withAction=withAction
+      )
+      spKeys = list(spDict.keys())
+    return spDict
 
-    def foundPatternsWithActions(aDict) :
-      if not isinstance(aDict, dict) : return False
-      for aKey, aValue in aDict.items() :
-        if aKey == 'name' :
-          aValue = aValue.lstrip('#')
-          if ScopeActions.hasAction(aValue) : 
-            print(f"found action for {aValue}")
-            return True
-        if foundPatternsWithActions(aValue) : return True
-      return False
+  def _collectScopePaths(aStruct, spDict, spKeys, withAction=False) :
+    # collectScopePaths recursion 
+    changed = False
+    if isinstance(aStruct, dict) :
+      for aKey, aValue in aStruct.items() :
+        if aKey in [ 'name', 'include' ] : 
+          strippedValue = aValue.lstrip('#')
+          if ScopeActions.hasAction(strippedValue) :
+            action = ScopeActions.getAction(strippedValue)
+            if '__action__' in action and 'method' in action['__action__'] :
+              theMethod = action['__action__']['method']
+              if 'action' not in spDict : changed = True
+              spDict['action'] = theMethod.__module__+'.'+theMethod.__name__
+              if aKey not in spDict : changed = True
+              spDict[aKey] = aValue
+          elif strippedValue in spKeys :
+            if aKey not in spDict : changed = True
+            spDict[aKey] = aValue
+          elif not withAction :
+            if aKey not in spDict : changed = True
+            spDict[aKey] = aValue
+        else :
+          spLevelDict = {}
+          if aKey in spDict : spLevelDict = spDict[aKey]
+          newChanged = Grammar._collectScopePaths(
+            aStruct=aValue, spDict=spLevelDict,
+            spKeys=spKeys, withAction=withAction
+          )
+          if aKey not in spDict and spLevelDict : 
+            changed = True
+            spDict[aKey] = spLevelDict
+          changed = changed or newChanged
+    elif isinstance(aStruct, list) :
+      for anIndex, aValue in enumerate(aStruct) :
+        spLevelDict = {}
+        if anIndex in spDict : spLevelDict = spDict[anIndex]
+        newChanged = Grammar._collectScopePaths(
+          aStruct=aValue, spDict=spLevelDict, 
+          spKeys=spKeys, withAction=withAction
+        )
+        if anIndex not in spDict and spLevelDict :
+          changed = True
+          spDict[anIndex] = spLevelDict
+        changed = changed or newChanged
+    return changed
 
-    patternsWithActions = {}
+  def removePatternsWithoutActions() :
+    # base case
+    scopePaths = Grammar.collectScopePaths(withAction=True)
+    repo = Grammar.repository
+    names2delete = []
+    for aName, aPattern in repo.items() :
+      if aName not in scopePaths : 
+        names2delete.append(aName)
+      else :
+        Grammar._removePatternsWithoutActions(aPattern, scopePaths[aName])
+    for aName in names2delete :
+      del repo[aName]
 
-    def removePatternsWithoutActions(aDict) :
-      if not isinstance(aDict, dict) : return False
-      numPatterns = 0
-      hasAction   = False
-      for aKey, aValue in aDict.items() :
+  def _removePatternsWithoutActions(aStruct, spLevelDict) :
+    # removePatternsWithoutActions recursion...
+    if isinstance(aStruct, dict) :
+      for aKey, aValue in aStruct.items() :
         if aKey == 'patterns' :
           indices2delete = []
-          for anIndex, aPat in enumerate(aValue) :
-            if removePatternsWithoutActions(aPat) : indices2delete.append(anIndex)
+          for anIndex, aPattern in enumerate(aValue) :
+            if anIndex not in spLevelDict['patterns'] : 
+              indices2delete.append(anIndex)
+            elif anIndex in spLevelDict['patterns'] :
+              Grammar._removePatternsWithoutActions(
+                aPattern, spLevelDict['patterns'][anIndex]
+              )
           indices2delete.reverse()
           for anIndex in indices2delete :
             del aValue[anIndex]
-          numPatterns = len(aValue)
-        if aKey == 'name' :
-          aValue = aValue.lstrip('#')
-          if aValue in patternsWithActions and patternsWithActions[aValue] :
-            hasAction = True
-      if numPatterns < 1 :
-        if 'patterns' in aDict : del aDict['patterns']
-        return not hasAction
-      return True
+        elif aKey in spLevelDict :
+          Grammar._removePatternsWithoutActions(aValue, spLevelDict[aKey])
 
-    repo    = Grammar.repository
-
-    for aName, aPattern in repo.items() :
-      patternsWithActions[aName] = foundPatternsWithActions(aPattern)
-
-    names2delete = []
-    for aName, aPattern in repo.items() :
-      if removePatternsWithoutActions(aPattern) : names2delete.append(aName)
-    
-    for aName in names2delete :
-      del repo[aName]
-    return names2delete
+    elif isinstance(aStruct, list) :
+      indices2delete = []
+      for anIndex, aPattern in enumerate(aStruct) :
+        if anIndex not in spLevelDict :
+          indices2delete.append(anIndex)
+          continue
+        Grammar._removePatternsWithoutActions(aPattern, spLevelDict[anIndex])
+      indices2delete.reverse()
+      for anIndex in indices2delete :
+        del aValue[anIndex]
       
   def pruneRepository(aScope) :
     patRefs     = Grammar.collectPatternReferences(aScope)

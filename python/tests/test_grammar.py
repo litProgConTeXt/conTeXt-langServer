@@ -4,6 +4,7 @@ import io
 import pytest
 import yaml
 
+from contextLangServer.processor.scopeActions import ScopeActions
 from contextLangServer.processor.grammar import Grammar
 
 def test_loadGrammar_empty() :
@@ -125,23 +126,66 @@ def test_pruneRepository() :
   print("--extra patterns-------------------------------------------------")
   print(yaml.dump(extraPats))
   print("-----------------------------------------------------------------")
-
-
   #assert False
 
-def test_removePatternsWithNoActions() :
+def test_collectScopePaths() :
+  if 'loaded' not in ScopeActions.actions :
+    ScopeActions.loadActionsFromDir('tests/actions')
+  if 'source.lpic' not in Grammar.scopes2patterns :
+    Grammar.loadFromFile('tests/context.tmLanguage.json')
+  scopePaths = Grammar.collectScopePaths(withAction=True)
+  print("--scope paths----------------------------------------------------")
+  print(yaml.dump(scopePaths))
+  print("-----------------------------------------------------------------")
+  assert 'lua-code-block' in scopePaths
+  luaCodeBlock = scopePaths['lua-code-block']['patterns'][0]
+  assert luaCodeBlock['action'] == 'actions.someScopeActions.sourceLua'
+  assert luaCodeBlock['include'] == 'source.lua'
+  assert 'lpic' in scopePaths
+  assert 'source.lpic' in scopePaths
+  assert 'metafun-code-block' not in scopePaths
+
+  scopePaths = Grammar.collectScopePaths()
+  #print("--scope paths----------------------------------------------------")
+  #print(yaml.dump(scopePaths))
+  #print("-----------------------------------------------------------------")
+  assert 'lua-code-block' in scopePaths
+  luaCodeBlock = scopePaths['lua-code-block']['patterns'][0]
+  assert luaCodeBlock['action'] == 'actions.someScopeActions.sourceLua'
+  assert luaCodeBlock['include'] == 'source.lua'
+  assert 'metafun-code-block' in scopePaths
+  metafunCodeBlock = scopePaths['metafun-code-block']['captures']['0']
+  assert metafunCodeBlock['name'] == 'keyword.control.document.context'
+  #assert False
+
+#@pytest.mark.skip
+def test_removePatternsWithoutActions() :
+  if 'loaded' not in ScopeActions.actions :
+    ScopeActions.loadActionsFromDir('tests/actions')
   if 'source.lpic' not in Grammar.scopes2patterns :
     Grammar.loadFromFile('tests/context.tmLanguage.json')
   oldKeys = list(Grammar.repository.keys())
-  deletedKeys = Grammar.removePatternsWithNoActions('source.lpic')
-  print("--old keys-------------------------------------------------------")
-  print(yaml.dump(oldKeys))
-  print("--deleted keys---------------------------------------------------")
-  print(yaml.dump(deletedKeys))
-  print("--repository-----------------------------------------------------")
-  print(yaml.dump(Grammar.repository))
-  print("-----------------------------------------------------------------")
+  Grammar.removePatternsWithoutActions()
+  remainingKeys = list(Grammar.repository.keys())
+  #print("--old keys-------------------------------------------------------")
+  #print(yaml.dump(oldKeys))
+  #print("--remaining keys-------------------------------------------------")
+  #print(yaml.dump(remainingKeys))
+  #print("--repository-----------------------------------------------------")
+  #print(yaml.dump(Grammar.repository))
+  #print("-----------------------------------------------------------------")
+  assert remainingKeys != oldKeys
 
-  assert deletedKeys == oldKeys
+  repo = Grammar.repository
+  assert 'lua-code-block' in repo
+  luaCodeBlock = repo['lua-code-block']
+  assert luaCodeBlock['patterns'][0]['include'] == 'source.lua'
+  assert luaCodeBlock['begin'] == '(\\\\startlua)'
+  assert luaCodeBlock['captures']['0']['name'] == 'keyword.control.document.context'
+  assert luaCodeBlock['end'] == '(\\\\stoplua)'
+  assert luaCodeBlock['name'] == 'meta.scope.lua'
 
-  assert False
+  assert 'lpic' in repo
+  assert 'source.lpic' in repo
+  assert 'metafun-code-block' not in repo
+  #assert False
