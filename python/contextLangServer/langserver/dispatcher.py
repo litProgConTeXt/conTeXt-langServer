@@ -68,12 +68,13 @@ class Dispatcher :
     else                              : someParams = [ someParams ]
     if self.debugIO :
         self.debugIO.write("\n-dispatcher-----------------------------\n")
-        self.debugIO.write(f"method: {aMethod}\n")
-        self.debugIO.write(f"id: {anId}\n")
-        self.debugIO.write("params:\n")
+        self.debugIO.write(f"--method: {aMethod}\n")
+        self.debugIO.write(f"--id: {anId}\n")
+        self.debugIO.write("--params:\n")
         self.debugIO.write(yaml.dump(someParams))
-        self.debugIO.write("kwargs:\n")
+        self.debugIO.write("--kwargs:\n")
         self.debugIO.write(yaml.dump(kwargs))
+        self.debugIO.write("----------------------------------------\n")
         self.debugIO.flush()
     try :
       if aMethodConfig['packed'] :

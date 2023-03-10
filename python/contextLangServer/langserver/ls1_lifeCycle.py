@@ -12,6 +12,8 @@ from contextLangServer.langserver.dispatcher import Dispatcher
 #
 @Dispatcher.lsRequest('initialize') # all parameters in kwargs
 async def initialize(disp, ctx, params, kwargs) :
+  if disp.debugIO : 
+    disp.debugIO.write("lsRequest: initialize\n")
   return {
     'capabilities' : {
       'textDocumentSync' : {
@@ -42,6 +44,8 @@ async def initialize(disp, ctx, params, kwargs) :
 #
 @Dispatcher.lsNotification('initialized')
 async def initialized(disp, ctx, params, kwargs) :
+  if disp.debugIO : 
+    disp.debugIO.write("lsNotification: initialized\n")
   return None
   
 # Register Capability (unused)
@@ -54,6 +58,8 @@ async def initialized(disp, ctx, params, kwargs) :
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#shutdown
 @Dispatcher.lsRequest('shutdown')
 async def shutdown(disp, ctx, params, kwargs) :
+  if disp.debugIO : 
+    disp.debugIO.write("lsRequest: shutdown\n")
   return {}
 
 ##############################################################################
@@ -61,5 +67,7 @@ async def shutdown(disp, ctx, params, kwargs) :
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#exit
 @Dispatcher.lsNotification('exit')
 async def exit(disp, ctx, params, kwargs) :
+  if disp.debugIO : 
+    disp.debugIO.write("lsNotification: exit\n")
   disp.stopDispatching()
   return None
