@@ -1,5 +1,4 @@
 
-import re
 import yaml
 
 class DocumentCache :
@@ -31,15 +30,9 @@ class DocumentCache :
   def parse(docName, startingScope) :
     if docName in DocumentCache.documents :
       theDoc = DocumentCache.documents[docName]
-      theDocIter = theDoc.getDocIter()
-      aProbe = theDocIter.nextProbe()
-      while aProbe :
-        print(aProbe)
-        if aProbe in Grammar.macros :
-          index = theDocIter.curLine.find(aProbe)
-          print(f"Found {aProbe} at {index} in [{theDocIter.curLine}]")
-          Grammar.macros[aProbe](theDocIter, index)
-        aProbe = theDocIter.nextProbe()
+      theDocLines = theDoc.getDocIter()
+      for aLine in theDocLines :
+        print(aLine)
 
 class DocumentIter :
 

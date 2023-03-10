@@ -100,3 +100,12 @@ def test_subDoc() :
     curIndex += 1
   assert curIndex == endLine
   #assert False
+
+@pytest.mark.skip
+def test_parse() :
+  docPath = 'tests/docs/test.tex'
+  if not DocumentCache.hasDocument(docPath) :
+    DocumentCache.loadFromFile(docPath)
+  DocumentCache.parse(docPath, 'source.lpic')
+  
+  assert False

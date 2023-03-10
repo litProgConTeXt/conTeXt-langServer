@@ -14,7 +14,6 @@ def test_loadGrammar_empty() :
   assert isinstance(Grammar.scopes2patterns, dict)
   assert not Grammar.scopes2patterns
 
-#@pytest.mark.skip
 def test_loadGrammar_fromFile() :
   if 'source.lpic' not in Grammar.scopes2patterns :
     Grammar.loadFromFile('tests/context.tmLanguage.json')
@@ -40,6 +39,10 @@ def test_loadGrammar_fromFile() :
   assert 'include' in lpic['patterns'][2]
   assert lpic['patterns'][2]['include'] == '#context-definition'
   #assert False
+
+#def test_loadGrammarFromVSCodeDir() :
+#  Grammar.loadFromVSCodeDir()
+#  assert False
 
 def test_saveToIO() :
   if 'source.lpic' not in Grammar.scopes2patterns :

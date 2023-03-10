@@ -1,4 +1,4 @@
 
 
 def cli() :
-  print("Hello world!")
+  print("Hello from the context language server!")

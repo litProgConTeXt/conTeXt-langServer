@@ -1,7 +1,9 @@
 
 import copy
+import glob
 import importlib.resources
 import json
+import os
 #import pprint
 import yaml
 
@@ -74,12 +76,33 @@ class Grammar :
   def loadFromResourceDir(aGrammarPackage) :
     syntaxDir = importlib.resources.files(aGrammarPackage)
     for aSyntaxFile in syntaxDir.iterdir() :
-      if not aSyntaxFile.name.endswith('tmLanguage.json') : continue
+      if not aSyntaxFile.name.endswith('tmGrammar.json') : continue
       with importlib.resources.as_file(aSyntaxFile) as syntaxFile :
         syntaxStr = syntaxFile.read_text()
         syntaxDict = json.loads(syntaxStr)
         Grammar.loadFromDict(syntaxDict)
- 
+
+  def loadFromVSCodeDir(
+    anExtensionDir=None,
+    anAuthor='lpic-tools',
+    anExtension='context-lpic-tools',
+    grammarExt='tmGrammar.json'
+  ) :
+    if anExtensionDir is None :
+      homeDir = os.path.expanduser("~")
+      anExtensionDir = os.path.join(homeDir, '.vscode', 'extensions')
+      if not os.path.exists(anExtensionDir) :
+        anExtensionDir = os.path.join(homeDir, '.vscode-oss', 'extensions')
+    if not os.path.exists(anExtensionDir) :
+      print("Can not load grammars from VSCode directory")
+      print("  no code directory found")
+      return
+    extensionGlob = f"{anAuthor}.{anExtension}*/*/*{grammarExt}"
+    print(extensionGlob)
+    for anExtensionPath in glob.iglob(extensionGlob, root_dir=anExtensionDir) :
+      #print(anExtensionPath)
+      Grammar.loadFromFile(os.path.join(anExtensionDir, anExtensionPath))
+
   def collectPatternReferences(aScope) :
     repo = Grammar.repository
     patRefs = {}

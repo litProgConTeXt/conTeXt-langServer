@@ -1,14 +1,14 @@
 {
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-  "scopeName": "source.lpic",
-  "name": "LPiConTeXt",
+  "scopeName": "source.context",
+  "name": "ConTeXt",
   "fileTypes": ["tex"],
-  "firstLineMatch" : "^%% lpic",
+  "firstLineMatch" : "^%% context",
   "foldingStartMarker": "\\\\(start.*|b(TABLE|TD|TR))",
   "foldingStopMarker": "\\\\(stop.*|e(TABLE|TD|TR))",
-  "patterns": [ { "include": "#lpic" } ],
+  "patterns": [ { "include": "#context" } ],
   "repository": {
-    "lpic" : {
+    "context" : {
       "patterns": [
         {"include": "#inline-math"},
         {"include": "#context-command"},

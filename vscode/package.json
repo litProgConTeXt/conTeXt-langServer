@@ -1,0 +1,83 @@
+{
+  "name": "context-lpic-tools",
+  "displayName": "ConTeXt LPiC Tools",
+  "description": "ConTeXt for VS Code",
+  "version": "0.0.4",
+  "preview" : true,
+  "publisher": "lpic-tools",
+  "repository": {
+    "type" : "git",
+    "url"  : "https://github.com/litProgConTeXt/conTeXt-langServer"
+  },
+  "homepage" : "https://github.com/litProgConTeXt/conTeXt-langServer",
+  "bugs" : {
+    "url" : "https://github.com/litProgConTeXt/conTeXt-langServer/issues"
+  },
+  "license": "Apache 2.0",
+  "author": {
+    "name": "Stephen Gaito"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "keywords": [
+    "ConTeXt",
+    "TeX",
+    "typesetting",
+    "Litterate",
+    "Programming"
+  ],
+  "main" : "./dist/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "context",
+        "extensions": [
+          ".tex"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "context",
+        "scopeName": "source.context",
+        "path": "./syntaxes/context.tmGrammar.json"
+      }
+    ]
+  },
+  "scripts": {
+    "package": "npm version patch && vsce package",
+    "vscode:prepublish": "npm run dist",
+    "dist": "webpack",
+    "build": "tsc -p .",
+    "watch": "tsc -p . --watch",
+    "lint": "tslint --project ."
+  },
+  "eslintConfig" : {
+    "env" : {
+      "node" : true
+    }
+  },
+  "devDependencies": {
+    "typescript" : "^4.9.5",
+    "@types/command-exists": "^1.2.0",
+    "@types/node": "^18.14.6",
+    "@types/vscode": "^1.76.0",
+    "@types/webpack": "^5.28.0",
+    "ts-loader": "^9.4.2",
+    "ts-node": "^10.9.1",
+    "eslint" : "^8.35.0",
+    "@typescript-eslint/parser" : "^5.54.1",
+    "@typescript-eslint/eslint-plugin"  : "^5.54.1",
+    "webpack" : "^5.75.0",
+    "webpack-cli" : "^5.0.1",
+    "clean-webpack-plugin" : "^4.0.0"
+  },
+  "dependencies": {
+    "command-exists": "^1.2.9",
+    "vscode-languageclient": "^8.1.0"
+  }
+}
