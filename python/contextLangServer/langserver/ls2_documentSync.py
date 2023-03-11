@@ -9,7 +9,7 @@ from contextLangServer.langserver.dispatcher import Dispatcher
 #    Did Open Text Document
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_didOpen
 #
-@Dispatcher.lsNotification('textDocument/didOpen') 
+@Dispatcher.lsNotification('textDocument/didOpen', file=__file__) 
 async def textDocument_didOpen(disp, ctx, params, kwargs) :
   pass
 
@@ -17,7 +17,7 @@ async def textDocument_didOpen(disp, ctx, params, kwargs) :
 #    Did Change Text Document
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_didChange
 #
-@Dispatcher.lsNotification('textDocument/didChange')
+@Dispatcher.lsNotification('textDocument/didChange', file=__file__)
 async def textDocument_didChange(disp, ctx, params, kwargs) :
   pass
 
@@ -25,7 +25,7 @@ async def textDocument_didChange(disp, ctx, params, kwargs) :
 #    Will Save Text Document
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_willSave
 #
-@Dispatcher.lsNotification('textDocument/willSave')
+@Dispatcher.lsNotification('textDocument/willSave', file=__file__)
 async def textDocument_willSave(disp, ctx, params, kwargs) :
   pass
 
@@ -33,7 +33,7 @@ async def textDocument_willSave(disp, ctx, params, kwargs) :
 #    Did Save Text Document
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_didSave
 #
-@Dispatcher.lsNotification('textDocument/didSave')
+@Dispatcher.lsNotification('textDocument/didSave', file=__file__)
 async def textDocument_didSave(disp, ctx, params, kwargs) :
   pass
 
@@ -41,7 +41,7 @@ async def textDocument_didSave(disp, ctx, params, kwargs) :
 #    Did Close Text Document
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_didClose
 #
-@Dispatcher.lsNotification('textDocument/didClose')
+@Dispatcher.lsNotification('textDocument/didClose', file=__file__)
 async def textDocument_didClose(disp, ctx, params, kwargs) :
   pass
 

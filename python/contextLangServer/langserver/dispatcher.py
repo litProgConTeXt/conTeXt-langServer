@@ -45,18 +45,18 @@ class Dispatcher :
 
   def reportMethods(self) :
     if not self.debugIO : return
-    routes = sort(self.methods.keys())
+    routes = sorted(self.methods.keys())
     for aRoute in routes :
       someMethods = self.methods[aRoute]
       for anIndex, aMethod in enumerate(someMethods) :
-        self.debugIO.write(f"{aMethod['route']}[{anIndex}] <{aMethod['file']}>")
+        self.debugIO.write(f"{aMethod['route']}[{anIndex}] <{aMethod['file']}>\n")
 
   def listMethods(self) :
     return list(self.methods.keys())
 
   async def dispatchOnce(self) :
     aMethod, someParams, anId = await self.jsonRpc.receive()
-    if aMethod not in self.methods and not self.methods[aMethod] :
+    if aMethod not in self.methods or not self.methods[aMethod] :
       await self.jsonRpc.sendError(f"No method found for [{aMethod}]")
       return
     aMethodConfig = self.methods[aMethod][0]

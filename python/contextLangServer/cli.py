@@ -4,6 +4,7 @@ import os
 import yaml
 
 import contextLangServer.langserver.ls1_lifeCycle
+import contextLangServer.langserver.lsA_build
 
 from contextLangServer.langserver.simpleJsonRpc import (
   asyncWrapStdinStdout, AsyncJsonRpc
@@ -16,6 +17,8 @@ async def asyncMain() :
   debugIO.write("Started context language server\n")
   ajr = AsyncJsonRpc(reader, writer)
   lsDispatcher = Dispatcher(ajr, debugIO=debugIO)
+  lsDispatcher.reportMethods()
+  
   await lsDispatcher.run()
 
 def cli() :
