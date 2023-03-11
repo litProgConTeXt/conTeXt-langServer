@@ -45,6 +45,7 @@ The following files have been taken and modified for our use:
 - `src/extension.ts`
 - `src/selectors.ts`
 - `src/view.ts`
+- `languages/context.json`
 - `grammars/context.tmLanguage.json`
 
 These files have been copied from the `master` branch

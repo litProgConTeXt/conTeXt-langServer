@@ -118,11 +118,11 @@ def test_listMethods() :
   #assert len(methods) == 10 
   
   assert 'simpleStrParam' in methods
-  assert not Dispatcher.methods['simpleStrParam']['packed'] 
-  assert Dispatcher.methods['simpleStrParam']['kwargs']['test'] == "this is a test"
+  assert not Dispatcher.methods['simpleStrParam'][0]['packed'] 
+  assert Dispatcher.methods['simpleStrParam'][0]['kwargs']['test'] == "this is a test"
   assert 'simplePackedStrParam' in methods
-  assert Dispatcher.methods['simplePackedStrParam']['packed']
-  assert Dispatcher.methods['simplePackedStrParam']['kwargs']['test'] == "this is a test"
+  assert Dispatcher.methods['simplePackedStrParam'][0]['packed']
+  assert Dispatcher.methods['simplePackedStrParam'][0]['kwargs']['test'] == "this is a test"
   assert 'simpleListParam' in methods
   assert 'simplePackedListParam' in methods
   assert 'simpleDictParam' in methods

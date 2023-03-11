@@ -10,10 +10,11 @@ import { BuildStatus, TexLanguageClient } from './client'
 import { CONTEXT_FILE, CONTEXT_UNTITLED } from './selectors'
 import { Messages, StatusIcon } from './view'
 
-let thingsToDispose : Array<{ dispose() : any }> = [];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const thingsToDispose : Array<{ dispose() : any }> = [];
 let client : TexLanguageClient ;
 
-export async function activate(vsContext: vscode.ExtensionContext) {
+export async function activate(_vsContext: vscode.ExtensionContext) {
 
   const serverName = 'context-langserver'
 

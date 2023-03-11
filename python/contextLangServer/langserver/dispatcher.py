@@ -9,14 +9,17 @@ class Dispatcher :
 
   methods = {} # Class variable
 
-  def lsRequest(route, packed=True, kwargsDict={}) :
+  def lsRequest(route, packed=True, kwargsDict={}, file=__file__) :
     def decorator_routeMethod(asyncMethodFunc) :
-      Dispatcher.methods[route] = {
+      if route not in Dispatcher.methods :
+        Dispatcher.methods[route] = []
+      Dispatcher.methods[route].insert(0, {
         'route'  : route,
         'method' : asyncMethodFunc,
         'packed' : packed,
-        'kwargs' : copy.deepcopy(kwargsDict)
-      }
+        'kwargs' : copy.deepcopy(kwargsDict),
+        'file'   : file
+      })
       return asyncMethodFunc
     return decorator_routeMethod
 
@@ -30,21 +33,33 @@ class Dispatcher :
     self.debugIO = debugIO
     self.continueDispatching = True
 
+  def getMethodsFor(self, aRoute) :
+    if aRoute not in self.methods : return []
+    return self.methods[aRoute]
+
   def getContext(self) :
     return self.context
 
   def stopDispatching(self) :
     self.continueDispatching = False
 
+  def reportMethods(self) :
+    if not self.debugIO : return
+    routes = sort(self.methods.keys())
+    for aRoute in routes :
+      someMethods = self.methods[aRoute]
+      for anIndex, aMethod in enumerate(someMethods) :
+        self.debugIO.write(f"{aMethod['route']}[{anIndex}] <{aMethod['file']}>")
+
   def listMethods(self) :
     return list(self.methods.keys())
 
   async def dispatchOnce(self) :
     aMethod, someParams, anId = await self.jsonRpc.receive()
-    if aMethod not in self.methods :
+    if aMethod not in self.methods and not self.methods[aMethod] :
       await self.jsonRpc.sendError(f"No method found for [{aMethod}]")
       return
-    aMethodConfig = self.methods[aMethod]
+    aMethodConfig = self.methods[aMethod][0]
     if not aMethodConfig : 
       await self.jsonRpc.sendError(f"No method defined for [{aMethod}]")
       return
@@ -68,13 +83,12 @@ class Dispatcher :
     else                              : someParams = [ someParams ]
     if self.debugIO :
         self.debugIO.write("\n-dispatcher-----------------------------\n")
-        self.debugIO.write(f"--method: {aMethod}\n")
-        self.debugIO.write(f"--id: {anId}\n")
-        self.debugIO.write("--params:\n")
+        self.debugIO.write(f"method: {aMethod}\n")
+        self.debugIO.write(f"id: {anId}\n")
+        self.debugIO.write("params:\n")
         self.debugIO.write(yaml.dump(someParams))
-        self.debugIO.write("--kwargs:\n")
+        self.debugIO.write("kwargs:\n")
         self.debugIO.write(yaml.dump(kwargs))
-        self.debugIO.write("----------------------------------------\n")
         self.debugIO.flush()
     try :
       if aMethodConfig['packed'] :
